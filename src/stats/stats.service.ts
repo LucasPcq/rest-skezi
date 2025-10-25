@@ -5,6 +5,7 @@ import { StatsRepository } from "./stats.repository";
 
 import type { OccupancyQueryDTO } from "./schemas/occupancy-query.schema";
 import type { AverageDurationQueryDTO } from "./schemas/average-duration-query.schema";
+import { TopRoomDTO } from "./schemas/top-rooms.schema";
 
 import { calculatePeriodBounds, parseDateRangeWithBoundaries } from "../shared/date/date";
 
@@ -54,7 +55,7 @@ export class StatsService {
     };
   }
 
-  async getTopRooms(): Promise<Array<{ roomId: number; name: string; reservationCount: number }>> {
+  async getTopRooms(): Promise<TopRoomDTO[]> {
     return this.statsRepository.getTopRooms(3);
   }
 }

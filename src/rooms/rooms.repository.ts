@@ -1,7 +1,7 @@
 import { Inject, Injectable } from "@nestjs/common";
 
 import type { NodePgDatabase } from "drizzle-orm/node-postgres";
-import { type SQL, DrizzleQueryError, and, eq, inArray, notInArray } from "drizzle-orm";
+import { DrizzleQueryError, and, eq, inArray, notInArray } from "drizzle-orm";
 import { DatabaseError } from "pg";
 
 import { schema } from "../db/schema";
@@ -49,23 +49,14 @@ export class RoomsRepository {
     roomIds?: number[];
     unavailableRoomIds: number[];
   }): Promise<Room[]> {
-    const conditions: SQL[] = [];
-
-    if (roomIds) {
-      conditions.push(inArray(rooms.id, roomIds));
-    }
-
-    if (unavailableRoomIds.length > 0) {
-      conditions.push(notInArray(rooms.id, unavailableRoomIds));
-    }
-
-    if (conditions.length > 0) {
-      return this.db
-        .select()
-        .from(rooms)
-        .where(and(...conditions));
-    }
-
-    return this.db.select().from(rooms);
+    return this.db
+      .select()
+      .from(rooms)
+      .where(
+        and(
+          ...(roomIds ? [inArray(rooms.id, roomIds)] : []),
+          ...(unavailableRoomIds.length > 0 ? [notInArray(rooms.id, unavailableRoomIds)] : []),
+        ),
+      );
   }
 }
