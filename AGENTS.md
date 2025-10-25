@@ -109,7 +109,7 @@ REST Conventions
 	- 500 Internal Server Error
 
 Response Format
-Every endpoint returns a consistent envelope (handled automatically by ResponseInterceptor):
+Every endpoint returns a consistent envelope:
 
 Success response:
 {
@@ -117,7 +117,7 @@ Success response:
   "meta": {}
 }
 
-Error response (handled automatically by HttpExceptionFilter):
+Error response:
 {
   "data": null,
   "meta": {},
@@ -127,11 +127,15 @@ Error response (handled automatically by HttpExceptionFilter):
   }
 }
 
+This contract is enforced globally by:
+- `EnvelopeInterceptor` for successful responses
+- `EnvelopeExceptionFilter` for errors
+
 Exception Handling
 - Controllers and services throw NestJS exceptions (BadRequestException, NotFoundException, etc.).
 - Use custom error format: throw new BadRequestException({ code: "ERROR_CODE", message: "Error message" }).
-- The HttpExceptionFilter automatically formats all exceptions into the standard error envelope.
-- Never manually construct error responses in controllers.
+- let `EnvelopeExceptionFilter` normalize exceptions into the envelope (no manual try/catch in controllers).
+- Controllers should return domain data directly; `EnvelopeInterceptor` wraps it in the envelope.
 
 Documentation
 - Use Swagger (@nestjs/swagger) to expose API documentation.

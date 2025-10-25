@@ -1,19 +1,16 @@
 import { NestFactory } from "@nestjs/core";
 import { DocumentBuilder, SwaggerModule } from "@nestjs/swagger";
 
-import { HttpExceptionFilter } from "./shared/filters/http-exception.filter";
-import { ResponseInterceptor } from "./shared/interceptors/response.interceptor";
-
 import { AppModule } from "./app.module";
+import { EnvelopeExceptionFilter } from "./shared/filters/envelope-exception.filter";
+import { EnvelopeInterceptor } from "./shared/interceptors/envelope.interceptor";
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
-  app.useGlobalInterceptors(new ResponseInterceptor());
+  app.useGlobalFilters(new EnvelopeExceptionFilter());
+  app.useGlobalInterceptors(new EnvelopeInterceptor());
 
-  app.useGlobalFilters(new HttpExceptionFilter());
-
-  // Swagger documentation
   const config = new DocumentBuilder()
     .setTitle("Meeting Room Reservation API")
     .setDescription("API for managing meeting rooms and reservations")
