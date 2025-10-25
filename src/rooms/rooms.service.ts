@@ -1,13 +1,24 @@
 import { BadRequestException, Injectable, NotFoundException } from "@nestjs/common";
 
-import type { CreateRoomDTO } from "./schemas/create-room.schema";
 import type { RoomDTO } from "./schemas/room.schema";
+import type { CreateRoomDTO } from "./schemas/create-room.schema";
+import type { AvailabilityQueryDTO } from "./schemas/availability-query.schema";
 
+import { ReservationQueriesService } from "../shared/reservation-queries/reservation-queries.service";
 import { RoomsRepository } from "./rooms.repository";
+
+import {
+  getDateTimeLocal,
+  formatDateTimeString,
+  validateAndConvertTimeRange,
+} from "src/shared/date/date";
 
 @Injectable()
 export class RoomsService {
-  constructor(private readonly roomsRepository: RoomsRepository) {}
+  constructor(
+    private readonly reservationQueriesService: ReservationQueriesService,
+    private readonly roomsRepository: RoomsRepository,
+  ) {}
 
   async createRoom(data: CreateRoomDTO): Promise<RoomDTO> {
     const room = await this.roomsRepository.create(data);
@@ -38,5 +49,36 @@ export class RoomsService {
     }
 
     return room;
+  }
+
+  async getAvailableRooms({
+    date,
+    startTime,
+    endTime,
+    roomIds,
+  }: AvailabilityQueryDTO): Promise<RoomDTO[]> {
+    const startDateTimeStr = formatDateTimeString(date, startTime);
+    const endDateTimeStr = formatDateTimeString(date, endTime);
+
+    const startTimeLocal = getDateTimeLocal(startDateTimeStr);
+    const endTimeLocal = getDateTimeLocal(endDateTimeStr);
+
+    const { startTimeUTC, endTimeUTC } = validateAndConvertTimeRange(startTimeLocal, endTimeLocal);
+
+    const overlappingReservations =
+      await this.reservationQueriesService.findOverlappingReservations({
+        startTime: startTimeUTC,
+        endTime: endTimeUTC,
+        roomIds,
+      });
+
+    const unavailableRoomIds = overlappingReservations.map((r) => r.roomId);
+
+    const rooms = await this.roomsRepository.findAvailableRooms({
+      roomIds,
+      unavailableRoomIds,
+    });
+
+    return rooms;
   }
 }

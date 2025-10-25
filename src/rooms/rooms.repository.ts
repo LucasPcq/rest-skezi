@@ -1,11 +1,12 @@
 import { Inject, Injectable } from "@nestjs/common";
 
 import type { NodePgDatabase } from "drizzle-orm/node-postgres";
-import { DrizzleQueryError, eq } from "drizzle-orm";
+import { type SQL, DrizzleQueryError, and, eq, inArray, notInArray } from "drizzle-orm";
 import { DatabaseError } from "pg";
 
 import { schema } from "../db/schema";
 import { Room, rooms } from "../db/schema/rooms.schema";
+
 import { DATABASE_PROVIDER } from "../db/db.provider";
 
 import type { CreateRoomDTO } from "./schemas/create-room.schema";
@@ -39,5 +40,32 @@ export class RoomsRepository {
   async findById(roomId: number): Promise<Room | null> {
     const result = await this.db.select().from(rooms).where(eq(rooms.id, roomId));
     return result[0] || null;
+  }
+
+  async findAvailableRooms({
+    roomIds,
+    unavailableRoomIds,
+  }: {
+    roomIds?: number[];
+    unavailableRoomIds: number[];
+  }): Promise<Room[]> {
+    const conditions: SQL[] = [];
+
+    if (roomIds) {
+      conditions.push(inArray(rooms.id, roomIds));
+    }
+
+    if (unavailableRoomIds.length > 0) {
+      conditions.push(notInArray(rooms.id, unavailableRoomIds));
+    }
+
+    if (conditions.length > 0) {
+      return this.db
+        .select()
+        .from(rooms)
+        .where(and(...conditions));
+    }
+
+    return this.db.select().from(rooms);
   }
 }

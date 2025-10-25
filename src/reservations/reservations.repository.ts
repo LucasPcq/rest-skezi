@@ -1,7 +1,7 @@
 import { Inject, Injectable } from "@nestjs/common";
 
 import type { NodePgDatabase } from "drizzle-orm/node-postgres";
-import { and, eq, gte, lte } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 
 import { DATABASE_PROVIDER } from "src/db/db.provider";
 
@@ -23,28 +23,5 @@ export class ReservationsRepository {
 
   async findByRoomId(roomId: number): Promise<Reservation[]> {
     return this.db.select().from(reservations).where(eq(reservations.roomId, roomId));
-  }
-
-  async hasOverlap({
-    roomId,
-    startTime,
-    endTime,
-  }: {
-    roomId: number;
-    startTime: Date;
-    endTime: Date;
-  }): Promise<boolean> {
-    const overlapping = await this.db
-      .select()
-      .from(reservations)
-      .where(
-        and(
-          eq(reservations.roomId, roomId),
-          lte(reservations.startTime, endTime),
-          gte(reservations.endTime, startTime),
-        ),
-      );
-
-    return overlapping.length > 0;
   }
 }

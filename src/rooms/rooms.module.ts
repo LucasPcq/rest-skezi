@@ -1,13 +1,14 @@
 import { Module } from "@nestjs/common";
 
 import { DatabaseModule } from "../db/db.module";
+import { ReservationQueriesModule } from "../shared/reservation-queries/reservation-queries.module";
 
 import { RoomsController } from "./rooms.controller";
 import { RoomsRepository } from "./rooms.repository";
 import { RoomsService } from "./rooms.service";
 
 @Module({
-  imports: [DatabaseModule],
+  imports: [DatabaseModule, ReservationQueriesModule],
   controllers: [RoomsController],
   providers: [RoomsService, RoomsRepository],
   exports: [RoomsService, RoomsRepository],

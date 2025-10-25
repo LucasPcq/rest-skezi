@@ -1,14 +1,18 @@
-import { Body, Controller, Get, Param, Post, UsePipes } from "@nestjs/common";
-import { ApiBody, ApiOperation, ApiParam, ApiResponse, ApiTags } from "@nestjs/swagger";
+import { Body, Controller, Get, Param, Post, Query, UsePipes } from "@nestjs/common";
+import { ApiBody, ApiOperation, ApiParam, ApiQuery, ApiResponse, ApiTags } from "@nestjs/swagger";
 
 import type { EnvelopeResponse } from "../shared/interceptors/envelope.interceptor";
 import { ZodValidationPipe } from "../shared/pipes/zod-validation.pipe";
 
 import { RoomsService } from "./rooms.service";
 
-import { createRoomSchema, type CreateRoomDTO } from "./schemas/create-room.schema";
-import { roomIdSchema } from "./schemas/room-id.schema";
 import type { RoomDTO } from "./schemas/room.schema";
+import { type RoomIdParamDTO, roomIdSchema } from "./schemas/room-id.schema";
+import { createRoomSchema, type CreateRoomDTO } from "./schemas/create-room.schema";
+import {
+  availabilityQuerySchema,
+  type AvailabilityQueryDTO,
+} from "./schemas/availability-query.schema";
 
 @ApiTags("rooms")
 @Controller("rooms")
@@ -57,6 +61,53 @@ export class RoomsController {
     };
   }
 
+  @Get("availability")
+  @ApiOperation({ summary: "Get available rooms for a specific time slot" })
+  @ApiQuery({
+    name: "roomIds",
+    type: "string",
+    required: false,
+    example: "1,2",
+    description: "Optional comma-separated list of room IDs",
+  })
+  @ApiQuery({
+    name: "endTime",
+    type: "string",
+    example: "12:00",
+    description: "End time in HH:mm format",
+  })
+  @ApiQuery({
+    name: "startTime",
+    type: "string",
+    example: "10:00",
+    description: "Start time in HH:mm format",
+  })
+  @ApiQuery({
+    name: "date",
+    type: "string",
+    example: "2025-10-26",
+    description: "Date in YYYY-MM-DD format",
+  })
+  @ApiResponse({
+    status: 200,
+    description: "List of available rooms",
+  })
+  @ApiResponse({
+    status: 400,
+    description: "Bad request - validation error or invalid time range",
+  })
+  async getAvailability(
+    @Query(new ZodValidationPipe(availabilityQuerySchema)) query: AvailabilityQueryDTO,
+  ): Promise<EnvelopeResponse<RoomDTO[]>> {
+    const rooms = await this.roomsService.getAvailableRooms(query);
+    return {
+      data: rooms,
+      meta: {
+        total: rooms.length,
+      },
+    };
+  }
+
   @Get(":id")
   @ApiOperation({ summary: "Get a room by ID" })
   @ApiParam({ name: "id", type: "number", example: 1 })
@@ -68,7 +119,7 @@ export class RoomsController {
     status: 404,
     description: "Room not found",
   })
-  async getRoomById(@Param(new ZodValidationPipe(roomIdSchema)) params: { id: number }) {
+  async getRoomById(@Param(new ZodValidationPipe(roomIdSchema)) params: RoomIdParamDTO) {
     const room = await this.roomsService.getRoomById(params.id);
     return room;
   }

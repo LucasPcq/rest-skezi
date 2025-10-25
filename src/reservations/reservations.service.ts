@@ -1,22 +1,25 @@
 import { BadRequestException, Injectable } from "@nestjs/common";
 import { parseISO } from "date-fns";
-import { fromZonedTime } from "date-fns-tz";
 
 import type { ReservationDTO } from "./schemas/reservation.schema";
 import type { CreateReservationDTO } from "./schemas/create-reservation.schema";
 
 import { RoomsService } from "../rooms/rooms.service";
+import { ReservationQueriesService } from "../shared/reservation-queries/reservation-queries.service";
 
 import { ReservationsRepository } from "./reservations.repository";
 
-const DEFAULT_TIMEZONE = "Europe/Paris";
-const ONE_MINUTE_MS = 60 * 1000;
-const TWENTY_FOUR_HOURS_MS = 24 * 60 * 60 * 1000;
+import {
+  ONE_MINUTE_MS,
+  TWENTY_FOUR_HOURS_MS,
+  validateAndConvertTimeRange,
+} from "src/shared/date/date";
 
 @Injectable()
 export class ReservationsService {
   constructor(
     private readonly roomsService: RoomsService,
+    private readonly reservationQueriesService: ReservationQueriesService,
     private readonly reservationsRepository: ReservationsRepository,
   ) {}
 
@@ -24,15 +27,7 @@ export class ReservationsService {
     const startTime = parseISO(data.startTime);
     const endTime = parseISO(data.endTime);
 
-    const startTimeUTC = fromZonedTime(startTime, DEFAULT_TIMEZONE);
-    const endTimeUTC = fromZonedTime(endTime, DEFAULT_TIMEZONE);
-
-    if (startTimeUTC >= endTimeUTC) {
-      throw new BadRequestException({
-        code: "INVALID_TIME_RANGE",
-        message: "Start time must be before end time.",
-      });
-    }
+    const { startTimeUTC, endTimeUTC } = validateAndConvertTimeRange(startTime, endTime);
 
     const durationMs = endTimeUTC.getTime() - startTimeUTC.getTime();
 
@@ -61,13 +56,14 @@ export class ReservationsService {
 
     const room = await this.roomsService.getRoomById(data.roomId);
 
-    const hasOverlap = await this.reservationsRepository.hasOverlap({
-      roomId: room.id,
-      startTime: startTimeUTC,
-      endTime: endTimeUTC,
-    });
+    const overlappingReservations =
+      await this.reservationQueriesService.findOverlappingReservations({
+        startTime: startTimeUTC,
+        endTime: endTimeUTC,
+        roomIds: [room.id],
+      });
 
-    if (hasOverlap) {
+    if (overlappingReservations.length > 0) {
       throw new BadRequestException({
         code: "RESERVATION_OVERLAP",
         message: "The room is already reserved for this time slot.",
@@ -99,7 +95,6 @@ export class ReservationsService {
     const room = await this.roomsService.getRoomById(roomId);
 
     const reservations = await this.reservationsRepository.findByRoomId(room.id);
-
     return reservations;
   }
 }
