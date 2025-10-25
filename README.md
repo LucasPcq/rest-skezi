@@ -31,6 +31,26 @@ Endpoints attendus :
 - Top 3 des salles les plus réservées
 - Durée moyenne des réunions 
 
+### Questions et choix avant de développer
+
+Afin d'avoir quelque chose de cohérent, certaines règles sont ajoutées / explicitées : 
+
+#### Réservation 
+- Durée minimale : 1 minute
+- Durée maximale : 24h
+- Pas de limitation de date dans le futur
+- Impossible de réserver avant maintenant (passé = avant l'instant présent)
+- Pas de buffer entre réservations : on peut réserver 10h-11h puis 11h-12h
+- Toute réservation qui chevauche même partiellement une existante est refusée
+- Validation : StartTime >= EndTime → Erreur | Durée de 0 minute → Erreur
+
+#### Format des dates
+- Stockage : UTC en base de données
+- API accepte : ISO avec timezone OU UTC si pas de timezone
+- API retourne : UTC avec indication timezone
+- Calculs stats : En UTC
+- Timezone par défaut : Europe/Paris
+
 ### Les tests automatisés
 
 - Tests unitaires
