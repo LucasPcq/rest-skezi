@@ -5,9 +5,10 @@ import { AppController } from "./app.controller";
 import { AppService } from "./app.service";
 
 import { DatabaseModule } from "./db/db.module";
+import { RoomsModule } from "./rooms/rooms.module";
 
 @Module({
-  imports: [DatabaseModule, ConfigModule.forRoot({ isGlobal: true })],
+  imports: [ConfigModule.forRoot({ isGlobal: true }), DatabaseModule, RoomsModule],
   controllers: [AppController],
   providers: [AppService],
 })

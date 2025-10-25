@@ -74,15 +74,21 @@ Layers
 Controllers
 - Handle request validation (Zod-based pipes), authentication/guards, and map DTOs ↔ domain.
 - No business logic here.
+- Use NestJS decorators (@Body, @Param, @Query, etc.) for data extraction.
+- Throw NestJS exceptions (BadRequestException, NotFoundException, etc.) for error handling.
+- Return data directly; let interceptors handle response wrapping.
 
 Services
 - Orchestrate workflows and contain business logic.
 - Compose repositories and domain services when needed.
+- Throw NestJS exceptions (BadRequestException, NotFoundException, etc.) when errors occur.
+- Return domain objects or DTOs directly; do not wrap in { data, error } objects.
 
 Repositories
 - Handle persistence with Drizzle.
 - Return typed entities or plain objects.
-- Never throw; return null or domain-specific error objects.
+- Never throw; return null for not found cases.
+- Let the service layer decide how to handle null returns.
 
 Zod Integration
 - Each DTO must have an associated Zod schema located under /schemas.
@@ -102,16 +108,16 @@ REST Conventions
 	- 404 Not Found
 	- 500 Internal Server Error
 
-- Response Format
-Every endpoint must return a consistent envelope:
+Response Format
+Every endpoint returns a consistent envelope (handled automatically by ResponseInterceptor):
 
+Success response:
 {
   "data": {},
-  "meta": {},
+  "meta": {}
 }
 
-If an error occurs
-
+Error response (handled automatically by HttpExceptionFilter):
 {
   "data": null,
   "meta": {},
@@ -121,9 +127,17 @@ If an error occurs
   }
 }
 
+Exception Handling
+- Controllers and services throw NestJS exceptions (BadRequestException, NotFoundException, etc.).
+- Use custom error format: throw new BadRequestException({ code: "ERROR_CODE", message: "Error message" }).
+- The HttpExceptionFilter automatically formats all exceptions into the standard error envelope.
+- Never manually construct error responses in controllers.
+
 Documentation
 - Use Swagger (@nestjs/swagger) to expose API documentation.
-- Keep all DTOs and responses documented.
+- Add @ApiTags() to controllers for grouping.
+- Add @ApiOperation(), @ApiResponse(), @ApiBody(), @ApiParam(), @ApiQuery() to all endpoints.
+- Use schema property in decorators to define request/response structure with examples.
 - Generated documentation should reflect the public contract (not internal models).
 
 ## Security
