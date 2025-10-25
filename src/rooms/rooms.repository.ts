@@ -11,7 +11,7 @@ import { DATABASE_PROVIDER } from "../db/db.provider";
 
 import type { CreateRoomDTO } from "./schemas/create-room.schema";
 
-import { PG_ERROR_STATUS } from "src/shared/errors/errors";
+import { PG_ERROR_STATUS } from "../shared/errors/errors";
 
 @Injectable()
 export class RoomsRepository {

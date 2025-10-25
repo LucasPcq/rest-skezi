@@ -13,7 +13,7 @@ import {
   ONE_MINUTE_MS,
   TWENTY_FOUR_HOURS_MS,
   validateAndConvertTimeRange,
-} from "src/shared/date/date";
+} from "../shared/date/date";
 
 @Injectable()
 export class ReservationsService {

@@ -3,10 +3,10 @@ import { Inject, Injectable } from "@nestjs/common";
 import type { NodePgDatabase } from "drizzle-orm/node-postgres";
 import { eq } from "drizzle-orm";
 
-import { DATABASE_PROVIDER } from "src/db/db.provider";
+import { DATABASE_PROVIDER } from "../db/db.provider";
 
 import { type schema } from "../db/schema";
-import { NewReservation, Reservation, reservations } from "src/db/schema/reservations.schema";
+import { NewReservation, Reservation, reservations } from "../db/schema/reservations.schema";
 
 @Injectable()
 export class ReservationsRepository {

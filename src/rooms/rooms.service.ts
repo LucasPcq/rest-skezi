@@ -11,7 +11,7 @@ import {
   getDateTimeLocal,
   formatDateTimeString,
   validateAndConvertTimeRange,
-} from "src/shared/date/date";
+} from "../shared/date/date";
 
 @Injectable()
 export class RoomsService {
