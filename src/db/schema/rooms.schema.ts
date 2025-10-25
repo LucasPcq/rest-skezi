@@ -2,7 +2,7 @@ import { integer, pgTable, serial, timestamp, varchar } from "drizzle-orm/pg-cor
 
 // Rooms table
 export const rooms = pgTable("rooms", {
-  roomId: serial("room_id").primaryKey(),
+  id: serial("room_id").primaryKey(),
   name: varchar("name", { length: 255 }).notNull().unique(),
   capacity: integer("capacity").notNull(),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),

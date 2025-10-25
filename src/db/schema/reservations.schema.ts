@@ -4,10 +4,10 @@ import { rooms } from "./rooms.schema";
 
 // Reservations table
 export const reservations = pgTable("reservations", {
-  reservationId: serial("reservation_id").primaryKey(),
+  id: serial("reservation_id").primaryKey(),
   roomId: integer("room_id")
     .notNull()
-    .references(() => rooms.roomId),
+    .references(() => rooms.id),
   startTime: timestamp("start_time", { withTimezone: true }).notNull(),
   endTime: timestamp("end_time", { withTimezone: true }).notNull(),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),

@@ -1,0 +1,5 @@
+const PG_ERROR_STATUS = {
+  UNIQUE_VIOLATION: "23505",
+};
+
+export { PG_ERROR_STATUS };
