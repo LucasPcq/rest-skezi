@@ -51,6 +51,10 @@ $ pnpm install
 ## Compile and run the project
 
 ```bash
+
+# .env
+$ cp .env.copy .env
+
 # development
 $ pnpm run start
 
