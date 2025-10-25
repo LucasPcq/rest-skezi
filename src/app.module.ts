@@ -8,6 +8,7 @@ import { DatabaseModule } from "./db/db.module";
 
 import { RoomsModule } from "./rooms/rooms.module";
 import { ReservationsModule } from "./reservations/reservations.module";
+import { StatsModule } from "./stats/stats.module";
 
 @Module({
   imports: [
@@ -15,6 +16,7 @@ import { ReservationsModule } from "./reservations/reservations.module";
     DatabaseModule,
     RoomsModule,
     ReservationsModule,
+    StatsModule,
   ],
   controllers: [AppController],
   providers: [AppService],
