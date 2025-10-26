@@ -1,3 +1,4 @@
+import { vi } from "vitest";
 import { StatsService } from "./stats.service";
 
 import type { OccupancyQueryDTO } from "./schemas/occupancy-query.schema";
@@ -7,13 +8,13 @@ import type { TopRoomDTO } from "./schemas/top-rooms.schema";
 import type { RoomDTO } from "../rooms/schemas/room.schema";
 
 const createMockStatsRepository = () => ({
-  getTotalReservationHours: jest.fn(),
-  getAverageDuration: jest.fn(),
-  getTopRooms: jest.fn(),
+  getTotalReservationHours: vi.fn(),
+  getAverageDuration: vi.fn(),
+  getTopRooms: vi.fn(),
 });
 
 const createMockRoomsService = () => ({
-  getRoomById: jest.fn(),
+  getRoomById: vi.fn(),
 });
 
 describe("StatsService", () => {
@@ -29,7 +30,7 @@ describe("StatsService", () => {
   };
 
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   describe("getOccupancyRate", () => {

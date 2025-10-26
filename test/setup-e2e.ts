@@ -1,3 +1,4 @@
+import { vi } from "vitest";
 import { startTestDatabase, stopTestDatabase } from "./utils/test-db";
 import { closeSharedPool } from "./utils/app-factory-db";
 
@@ -13,6 +14,6 @@ afterAll(async () => {
 }, 10000);
 
 afterEach(() => {
-  jest.clearAllMocks();
-  jest.useRealTimers();
+  vi.clearAllMocks();
+  vi.useRealTimers();
 });

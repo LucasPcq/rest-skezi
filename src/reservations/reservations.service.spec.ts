@@ -1,3 +1,4 @@
+import { vi } from "vitest";
 import { ReservationsService } from "./reservations.service";
 
 import type { ReservationDTO } from "./schemas/reservation.schema";
@@ -6,17 +7,17 @@ import type { CreateReservationDTO } from "./schemas/create-reservation.schema";
 import type { RoomDTO } from "../rooms/schemas/room.schema";
 
 const createMockRoomsService = () => ({
-  getRoomById: jest.fn(),
+  getRoomById: vi.fn(),
 });
 
 const createMockReservationQueriesService = () => ({
-  findOverlappingReservations: jest.fn(),
+  findOverlappingReservations: vi.fn(),
 });
 
 const createMockReservationsRepository = () => ({
-  create: jest.fn(),
-  findAll: jest.fn(),
-  findByRoomId: jest.fn(),
+  create: vi.fn(),
+  findAll: vi.fn(),
+  findByRoomId: vi.fn(),
 });
 
 describe("ReservationsService", () => {
@@ -38,9 +39,9 @@ describe("ReservationsService", () => {
   };
 
   beforeEach(() => {
-    jest.clearAllMocks();
-    jest.useFakeTimers();
-    jest.setSystemTime(baseDate);
+    vi.clearAllMocks();
+    vi.useFakeTimers();
+    vi.setSystemTime(baseDate);
   });
 
   describe("createReservation", () => {

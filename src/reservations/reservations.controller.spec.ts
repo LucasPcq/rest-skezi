@@ -1,3 +1,4 @@
+import { vi, type MockedObject } from "vitest";
 import { Test } from "@nestjs/testing";
 
 import { ReservationsController } from "./reservations.controller";
@@ -8,7 +9,7 @@ import type { ReservationDTO } from "./schemas/reservation.schema";
 
 describe("ReservationsController", () => {
   let controller: ReservationsController;
-  let reservationsService: jest.Mocked<ReservationsService>;
+  let reservationsService: MockedObject<ReservationsService>;
 
   const reservation: ReservationDTO = {
     id: 1,
@@ -20,10 +21,10 @@ describe("ReservationsController", () => {
 
   beforeEach(async () => {
     reservationsService = {
-      createReservation: jest.fn(),
-      getAllReservations: jest.fn(),
-      getReservationsByRoomId: jest.fn(),
-    } as unknown as jest.Mocked<ReservationsService>;
+      createReservation: vi.fn(),
+      getAllReservations: vi.fn(),
+      getReservationsByRoomId: vi.fn(),
+    } as unknown as MockedObject<ReservationsService>;
 
     const moduleRef = await Test.createTestingModule({
       controllers: [ReservationsController],

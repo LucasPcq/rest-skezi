@@ -1,3 +1,4 @@
+import { vi, type MockedObject } from "vitest";
 import { Test } from "@nestjs/testing";
 
 import { StatsController } from "./stats.controller";
@@ -9,14 +10,14 @@ import type { TopRoomDTO } from "./schemas/top-rooms.schema";
 
 describe("StatsController", () => {
   let controller: StatsController;
-  let statsService: jest.Mocked<StatsService>;
+  let statsService: MockedObject<StatsService>;
 
   beforeEach(async () => {
     statsService = {
-      getOccupancyRate: jest.fn(),
-      getAverageDuration: jest.fn(),
-      getTopRooms: jest.fn(),
-    } as unknown as jest.Mocked<StatsService>;
+      getOccupancyRate: vi.fn(),
+      getAverageDuration: vi.fn(),
+      getTopRooms: vi.fn(),
+    } as unknown as MockedObject<StatsService>;
 
     const moduleRef = await Test.createTestingModule({
       controllers: [StatsController],

@@ -1,3 +1,4 @@
+import { vi } from "vitest";
 import { BadRequestException, NotFoundException } from "@nestjs/common";
 
 import { RoomsService } from "./rooms.service";
@@ -9,14 +10,14 @@ import type { CreateRoomDTO } from "./schemas/create-room.schema";
 import type { Reservation } from "../db/schema/reservations.schema";
 
 const createMockRoomsRepository = () => ({
-  create: jest.fn(),
-  findAll: jest.fn(),
-  findById: jest.fn(),
-  findAvailableRooms: jest.fn(),
+  create: vi.fn(),
+  findAll: vi.fn(),
+  findById: vi.fn(),
+  findAvailableRooms: vi.fn(),
 });
 
 const createMockReservationQueriesService = () => ({
-  findOverlappingReservations: jest.fn(),
+  findOverlappingReservations: vi.fn(),
 });
 
 describe("RoomsService", () => {
@@ -32,7 +33,7 @@ describe("RoomsService", () => {
   };
 
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   describe("createRoom", () => {

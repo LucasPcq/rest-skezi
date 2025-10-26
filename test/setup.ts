@@ -1,6 +1,8 @@
+import { vi } from "vitest";
+
 process.env.TZ = "Europe/Paris";
 
 afterEach(() => {
-  jest.clearAllMocks();
-  jest.useRealTimers();
+  vi.clearAllMocks();
+  vi.useRealTimers();
 });
