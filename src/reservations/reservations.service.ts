@@ -8,6 +8,7 @@ import { RoomsService } from "../rooms/rooms.service";
 import { ReservationQueriesService } from "../shared/reservation-queries/reservation-queries.service";
 
 import { ReservationsRepository } from "./reservations.repository";
+import { TransactionService } from "../shared/database/transaction.service";
 
 import {
   ONE_MINUTE_MS,
@@ -21,6 +22,7 @@ export class ReservationsService {
     private readonly roomsService: RoomsService,
     private readonly reservationQueriesService: ReservationQueriesService,
     private readonly reservationsRepository: ReservationsRepository,
+    private readonly transactionService: TransactionService,
   ) {}
 
   async createReservation(data: CreateReservationDTO): Promise<ReservationDTO> {
@@ -56,32 +58,45 @@ export class ReservationsService {
 
     const room = await this.roomsService.getRoomById(data.roomId);
 
-    const overlappingReservations =
-      await this.reservationQueriesService.findOverlappingReservations({
-        startTime: startTimeUTC,
-        endTime: endTimeUTC,
-        roomIds: [room.id],
-      });
+    const reservation = await this.transactionService.execute(
+      async (tx) => {
+        const overlappingReservations =
+          await this.reservationQueriesService.findOverlappingReservations({
+            startTime: startTimeUTC,
+            endTime: endTimeUTC,
+            roomIds: [room.id],
+            tx,
+          });
 
-    if (overlappingReservations.length > 0) {
-      throw new BadRequestException({
-        code: "RESERVATION_OVERLAP",
-        message: "The room is already reserved for this time slot.",
-      });
-    }
+        if (overlappingReservations.length > 0) {
+          throw new BadRequestException({
+            code: "RESERVATION_OVERLAP",
+            message: "The room is already reserved for this time slot.",
+          });
+        }
 
-    const reservation = await this.reservationsRepository.create({
-      roomId: room.id,
-      startTime: startTimeUTC,
-      endTime: endTimeUTC,
-    });
+        const createdReservation = await this.reservationsRepository.create(
+          {
+            roomId: room.id,
+            startTime: startTimeUTC,
+            endTime: endTimeUTC,
+          },
+          tx,
+        );
 
-    if (!reservation) {
-      throw new BadRequestException({
-        code: "RESERVATION_CREATION_FAILED",
-        message: "Failed to create reservation due to an unknown error.",
-      });
-    }
+        if (!createdReservation) {
+          throw new BadRequestException({
+            code: "RESERVATION_CREATION_FAILED",
+            message: "Failed to create reservation due to an unknown error.",
+          });
+        }
+
+        return createdReservation;
+      },
+      {
+        isolationLevel: "repeatable read",
+      },
+    );
 
     return reservation;
   }

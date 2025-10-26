@@ -95,4 +95,62 @@ describe("Reservations API (e2e)", () => {
     expect(response.body.meta).toEqual({ total: 1 });
     expect(response.body.data).toHaveLength(1);
   });
+
+  it("should handle concurrent reservations atomically (race condition test)", async () => {
+    const room = await createRoom("Conference Room");
+
+    const reservationPayload = {
+      roomId: room.id,
+      startTime: "2030-03-01T14:00:00+01:00",
+      endTime: "2030-03-01T15:00:00+01:00",
+    };
+
+    const requests = Array.from({ length: 5 }, () =>
+      request(app.getHttpServer()).post("/reservations").send(reservationPayload),
+    );
+
+    const responses = await Promise.all(requests);
+
+    const successfulReservations = responses.filter((r) => r.status === 201);
+    const failedReservations = responses.filter((r) => r.status === 400);
+
+    expect(successfulReservations).toHaveLength(1);
+    expect(failedReservations).toHaveLength(4);
+
+    failedReservations.forEach((response) => {
+      expect(response.body.error.code).toBe("RESERVATION_OVERLAP");
+    });
+
+    const allReservations = await request(app.getHttpServer()).get("/reservations").expect(200);
+
+    expect(allReservations.body.data).toHaveLength(1);
+  });
+
+  it("should allow concurrent reservations on different rooms without blocking", async () => {
+    const rooms = await Promise.all([
+      createRoom("Room A"),
+      createRoom("Room B"),
+      createRoom("Room C"),
+      createRoom("Room D"),
+      createRoom("Room E"),
+    ]);
+
+    const requests = rooms.map((room) =>
+      request(app.getHttpServer()).post("/reservations").send({
+        roomId: room.id,
+        startTime: "2030-03-01T16:00:00+01:00",
+        endTime: "2030-03-01T17:00:00+01:00",
+      }),
+    );
+
+    const responses = await Promise.all(requests);
+
+    responses.forEach((response) => {
+      expect(response.status).toBe(201);
+    });
+
+    const allReservations = await request(app.getHttpServer()).get("/reservations").expect(200);
+
+    expect(allReservations.body.data).toHaveLength(5);
+  });
 });

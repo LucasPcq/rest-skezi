@@ -20,14 +20,20 @@ const createMockReservationsRepository = () => ({
   findByRoomId: vi.fn(),
 });
 
+const createMockTransactionService = () => ({
+  execute: vi.fn((callback) => callback({})),
+});
+
 describe("ReservationsService", () => {
   const roomsService = createMockRoomsService();
   const reservationQueriesService = createMockReservationQueriesService();
   const reservationsRepository = createMockReservationsRepository();
+  const transactionService = createMockTransactionService();
   const service = new ReservationsService(
     roomsService as never,
     reservationQueriesService as never,
     reservationsRepository as never,
+    transactionService as never,
   );
 
   const baseDate = new Date("2025-01-01T00:00:00Z");
@@ -68,16 +74,23 @@ describe("ReservationsService", () => {
       const result = await service.createReservation(payload);
 
       expect(roomsService.getRoomById).toHaveBeenCalledWith(room.id);
+      expect(transactionService.execute).toHaveBeenCalledWith(expect.any(Function), {
+        isolationLevel: "repeatable read",
+      });
       expect(reservationQueriesService.findOverlappingReservations).toHaveBeenCalledWith({
         startTime: expect.any(Date),
         endTime: expect.any(Date),
         roomIds: [room.id],
+        tx: expect.anything(),
       });
-      expect(reservationsRepository.create).toHaveBeenCalledWith({
-        roomId: room.id,
-        startTime: expect.any(Date),
-        endTime: expect.any(Date),
-      });
+      expect(reservationsRepository.create).toHaveBeenCalledWith(
+        {
+          roomId: room.id,
+          startTime: expect.any(Date),
+          endTime: expect.any(Date),
+        },
+        expect.anything(),
+      );
       expect(result).toEqual(reservation);
     });
 
