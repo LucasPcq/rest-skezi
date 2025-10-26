@@ -1,6 +1,9 @@
 import { PostgreSqlContainer, StartedPostgreSqlContainer } from "@testcontainers/postgresql";
 
+import path from "node:path";
+
 import { drizzle } from "drizzle-orm/node-postgres";
+import { migrate } from "drizzle-orm/node-postgres/migrator";
 import { Pool } from "pg";
 
 import { schema } from "../../src/db/schema";
@@ -55,22 +58,6 @@ export const getTestDatabaseConnectionString = (): string | null => {
 };
 
 const migrateTestDatabase = async (db: ReturnType<typeof drizzle>) => {
-  await db.execute(`
-    CREATE TABLE IF NOT EXISTS rooms (
-      room_id SERIAL PRIMARY KEY,
-      name VARCHAR(255) NOT NULL UNIQUE,
-      capacity INTEGER NOT NULL,
-      created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
-    );
-
-    CREATE TABLE IF NOT EXISTS reservations (
-      reservation_id SERIAL PRIMARY KEY,
-      room_id INTEGER NOT NULL REFERENCES rooms(room_id) ON DELETE CASCADE,
-      start_time TIMESTAMP WITH TIME ZONE NOT NULL,
-      end_time TIMESTAMP WITH TIME ZONE NOT NULL,
-      created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
-    );
-
-    CREATE INDEX IF NOT EXISTS idx_room_time ON reservations(room_id, start_time, end_time);
-  `);
+  const migrationsFolder = path.resolve(__dirname, "../../drizzle");
+  await migrate(db, { migrationsFolder });
 };
