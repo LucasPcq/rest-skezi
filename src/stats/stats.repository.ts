@@ -1,6 +1,6 @@
 import { Inject, Injectable } from "@nestjs/common";
 import type { NodePgDatabase } from "drizzle-orm/node-postgres";
-import { and, count, desc, eq, gt, lt, sql } from "drizzle-orm";
+import { and, count, desc, eq, gte, lte, sql } from "drizzle-orm";
 
 import { DATABASE_PROVIDER } from "../db/db.provider";
 
@@ -40,8 +40,8 @@ export class StatsRepository {
       .where(
         and(
           eq(reservations.roomId, roomId),
-          lt(reservations.startTime, endDate),
-          gt(reservations.endTime, startDate),
+          lte(reservations.startTime, endDate),
+          gte(reservations.endTime, startDate),
         ),
       );
 
@@ -63,8 +63,7 @@ export class StatsRepository {
           COALESCE(
             AVG(
               EXTRACT(EPOCH FROM (
-                LEAST(${reservations.endTime}, ${endDate ?? sql`now()`}) -
-                GREATEST(${reservations.startTime}, ${startDate ?? sql`'1970-01-01'::timestamp`})
+                ${reservations.endTime} - ${reservations.startTime}
               )) / 60
             ),
           0)
@@ -74,8 +73,8 @@ export class StatsRepository {
       .where(
         and(
           ...(roomId ? [eq(reservations.roomId, roomId)] : []),
-          ...(startDate ? [lt(reservations.endTime, endDate ?? new Date())] : []),
-          ...(endDate ? [gt(reservations.startTime, startDate ?? new Date(0))] : []),
+          ...(startDate ? [gte(reservations.endTime, startDate)] : []),
+          ...(endDate ? [lte(reservations.startTime, endDate)] : []),
         ),
       );
 
